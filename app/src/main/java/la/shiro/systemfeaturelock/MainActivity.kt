@@ -1,7 +1,10 @@
 package la.shiro.systemfeaturelock
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -35,8 +38,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import la.shiro.systemfeaturelock.ui.theme.SystemFeatureLockTheme
 import la.shiro.systemfeaturelock.util.SettingsUtil
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,13 +54,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        SettingsUtil.getSystemFeatureEnabled(KEY_THIRD_PARTY_INSTALL_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_CAMERA_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_FLASHLIGHT_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_WIFI_FEATURE)
-        SettingsUtil.getSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE)
     }
 }
 
@@ -94,13 +92,13 @@ fun SettingsAppBar(
 }
 
 const val KEY_SYSTEM_FEATURE = "system_feature"
-const val KEY_THIRD_PARTY_INSTALL_FEATURE = "third_party_install_feature"
-const val KEY_CAMERA_FEATURE = "camera_feature"
-const val KEY_FLASHLIGHT_FEATURE = "flashlight_feature"
-const val KEY_BLUETOOTH_FEATURE = "bluetooth_feature"
-const val KEY_MOBILE_DATA_FEATURE = "mobile_data_feature"
-const val KEY_WIFI_FEATURE = "wifi_feature"
-const val KEY_FACTORY_RESET_FEATURE = "factory_reset_feature"
+const val KEY_THIRD_PARTY_INSTALL_FEATURE = "disable_third_party_install"
+const val KEY_CAMERA_FEATURE = "disable_camera"
+const val KEY_FLASHLIGHT_FEATURE = "disable_flashlight"
+const val KEY_BLUETOOTH_FEATURE = "disable_bluetooth"
+const val KEY_MOBILE_DATA_FEATURE = "disable_mobile_data"
+const val KEY_WIFI_FEATURE = "disable_wifi"
+const val KEY_FACTORY_RESET_FEATURE = "disable_factory_reset"
 
 
 @Composable
@@ -149,7 +147,9 @@ fun Settings() {
                 KEY_BLUETOOTH_FEATURE, false
             ) && sharedPreferences.getBoolean(
                 KEY_MOBILE_DATA_FEATURE, false
-            ) && sharedPreferences.getBoolean(KEY_WIFI_FEATURE, false)
+            ) && sharedPreferences.getBoolean(
+                KEY_WIFI_FEATURE, false
+            )
         )
     }
 
@@ -367,6 +367,19 @@ fun Settings() {
                     thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (bluetoothFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, true)
+                    try {
+                        if (ActivityCompat.checkSelfPermission(
+                                localContext,
+                                Manifest.permission.BLUETOOTH_CONNECT
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            Log.e("TAG", "Error : No Bluetooth Permission")
+                        } else {
+                            SystemFeatureApplication.getBluetoothAdapter().disable()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("TAG", "Error : ", e)
+                    }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, false)
                 }
@@ -407,6 +420,19 @@ fun Settings() {
                         thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (bluetoothFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, true)
+                        try {
+                            if (ActivityCompat.checkSelfPermission(
+                                    localContext,
+                                    Manifest.permission.BLUETOOTH_CONNECT
+                                ) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                Log.e("TAG", "Error : No Bluetooth Permission")
+                            } else {
+                                SystemFeatureApplication.getBluetoothAdapter().disable()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("TAG", "Error : ", e)
+                        }
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, false)
                     }
@@ -431,6 +457,11 @@ fun Settings() {
                     thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (mobileDataFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, true)
+                    try {
+                        SystemFeatureApplication.getTelephonyManager().setDataEnabled(false)
+                    } catch (e: Exception) {
+                        Log.e("TAG", "Error : ", e)
+                    }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, false)
                 }
@@ -471,6 +502,11 @@ fun Settings() {
                         thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (mobileDataFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, true)
+                        try {
+                            SystemFeatureApplication.getTelephonyManager().setDataEnabled(false)
+                        } catch (e: Exception) {
+                            Log.e("TAG", "Error : ", e)
+                        }
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, false)
                     }
@@ -494,6 +530,12 @@ fun Settings() {
                     thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (wifiFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, true)
+                    try {
+                        SystemFeatureApplication.getWifiManager().setWifiEnabled(false)
+                        SystemFeatureApplication.getTetheringManager().stopTethering(0)
+                    } catch (e: Exception) {
+                        Log.e("TAG", "Error : ", e)
+                    }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, false)
                 }
@@ -533,6 +575,12 @@ fun Settings() {
                         thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (wifiFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, true)
+                        try {
+                            SystemFeatureApplication.getWifiManager().setWifiEnabled(false)
+                            SystemFeatureApplication.getTetheringManager().stopTethering(0)
+                        } catch (e: Exception) {
+                            Log.e("TAG", "Error : ", e)
+                        }
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, false)
                     }
