@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -108,49 +110,31 @@ fun Settings() {
         localContext.getSharedPreferences(KEY_SYSTEM_FEATURE, Context.MODE_PRIVATE)
 
     var thirdPartyInstallFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_THIRD_PARTY_INSTALL_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_THIRD_PARTY_INSTALL_FEATURE, true))
     }
 
     var cameraFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_CAMERA_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_CAMERA_FEATURE, true))
     }
 
     var flashlightFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_FLASHLIGHT_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_FLASHLIGHT_FEATURE, true))
     }
 
     var bluetoothFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_BLUETOOTH_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_BLUETOOTH_FEATURE, true))
     }
 
     var mobileDataFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_MOBILE_DATA_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_MOBILE_DATA_FEATURE, true))
     }
 
     var wifiFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_WIFI_FEATURE, false))
+        mutableStateOf(sharedPreferences.getBoolean(KEY_WIFI_FEATURE, true))
     }
 
     var factoryResetFeatureState by remember {
-        mutableStateOf(sharedPreferences.getBoolean(KEY_FACTORY_RESET_FEATURE, false))
-    }
-
-    var factoryResetSwitchEnabledState by remember {
-        mutableStateOf(
-            sharedPreferences.getBoolean(
-                KEY_THIRD_PARTY_INSTALL_FEATURE, false
-            ) && sharedPreferences.getBoolean(
-                KEY_CAMERA_FEATURE, false
-            ) && sharedPreferences.getBoolean(
-                KEY_FLASHLIGHT_FEATURE, false
-            ) && sharedPreferences.getBoolean(
-                KEY_BLUETOOTH_FEATURE, false
-            ) && sharedPreferences.getBoolean(
-                KEY_MOBILE_DATA_FEATURE, false
-            ) && sharedPreferences.getBoolean(
-                KEY_WIFI_FEATURE, false
-            )
-        )
+        mutableStateOf(sharedPreferences.getBoolean(KEY_FACTORY_RESET_FEATURE, true))
     }
 
     Column(
@@ -169,14 +153,6 @@ fun Settings() {
                     SettingsUtil.setSystemFeatureEnabled(KEY_THIRD_PARTY_INSTALL_FEATURE, true)
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_THIRD_PARTY_INSTALL_FEATURE, false)
-                }
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -217,14 +193,6 @@ fun Settings() {
                                 KEY_THIRD_PARTY_INSTALL_FEATURE, false
                             )
                         }
-                        factoryResetSwitchEnabledState =
-                            thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
-                        if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                            SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                        } else {
-                            SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                            factoryResetFeatureState = false
-                        }
                     })
             }
         }
@@ -235,18 +203,10 @@ fun Settings() {
             onClick = {
                 cameraFeatureState = !cameraFeatureState
                 sharedPreferences.edit().putBoolean(KEY_CAMERA_FEATURE, cameraFeatureState).apply()
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (cameraFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_CAMERA_FEATURE, true)
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_CAMERA_FEATURE, false)
-                }
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -275,18 +235,10 @@ fun Settings() {
                 Switch(modifier = Modifier, checked = cameraFeatureState, onCheckedChange = {
                     cameraFeatureState = it
                     sharedPreferences.edit().putBoolean(KEY_CAMERA_FEATURE, it).apply()
-                    factoryResetSwitchEnabledState =
-                        thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (cameraFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_CAMERA_FEATURE, true)
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_CAMERA_FEATURE, false)
-                    }
-                    if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                    } else {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                        factoryResetFeatureState = false
                     }
                 })
             }
@@ -299,18 +251,18 @@ fun Settings() {
                 flashlightFeatureState = !flashlightFeatureState
                 sharedPreferences.edit().putBoolean(KEY_FLASHLIGHT_FEATURE, flashlightFeatureState)
                     .apply()
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (flashlightFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_FLASHLIGHT_FEATURE, true)
+                    try {
+                        val cameraManager =
+                            localContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                        val cameraId = cameraManager.cameraIdList[0]
+                        cameraManager.setTorchMode(cameraId, false)
+                    } catch (e: CameraAccessException) {
+                        e.printStackTrace()
+                    }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_FLASHLIGHT_FEATURE, false)
-                }
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -339,18 +291,18 @@ fun Settings() {
                 Switch(modifier = Modifier, checked = flashlightFeatureState, onCheckedChange = {
                     flashlightFeatureState = it
                     sharedPreferences.edit().putBoolean(KEY_FLASHLIGHT_FEATURE, it).apply()
-                    factoryResetSwitchEnabledState =
-                        thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (flashlightFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_FLASHLIGHT_FEATURE, true)
+                        try {
+                            val cameraManager =
+                                localContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                            val cameraId = cameraManager.cameraIdList[0]
+                            cameraManager.setTorchMode(cameraId, false)
+                        } catch (e: CameraAccessException) {
+                            e.printStackTrace()
+                        }
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_FLASHLIGHT_FEATURE, false)
-                    }
-                    if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                    } else {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                        factoryResetFeatureState = false
                     }
                 })
             }
@@ -363,14 +315,11 @@ fun Settings() {
                 bluetoothFeatureState = !bluetoothFeatureState
                 sharedPreferences.edit().putBoolean(KEY_BLUETOOTH_FEATURE, bluetoothFeatureState)
                     .apply()
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (bluetoothFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, true)
                     try {
                         if (ActivityCompat.checkSelfPermission(
-                                localContext,
-                                Manifest.permission.BLUETOOTH_CONNECT
+                                localContext, Manifest.permission.BLUETOOTH_CONNECT
                             ) != PackageManager.PERMISSION_GRANTED
                         ) {
                             Log.e("TAG", "Error : No Bluetooth Permission")
@@ -382,12 +331,6 @@ fun Settings() {
                     }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, false)
-                }
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -416,14 +359,11 @@ fun Settings() {
                 Switch(modifier = Modifier, checked = bluetoothFeatureState, onCheckedChange = {
                     bluetoothFeatureState = it
                     sharedPreferences.edit().putBoolean(KEY_BLUETOOTH_FEATURE, it).apply()
-                    factoryResetSwitchEnabledState =
-                        thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (bluetoothFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, true)
                         try {
                             if (ActivityCompat.checkSelfPermission(
-                                    localContext,
-                                    Manifest.permission.BLUETOOTH_CONNECT
+                                    localContext, Manifest.permission.BLUETOOTH_CONNECT
                                 ) != PackageManager.PERMISSION_GRANTED
                             ) {
                                 Log.e("TAG", "Error : No Bluetooth Permission")
@@ -436,12 +376,6 @@ fun Settings() {
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_BLUETOOTH_FEATURE, false)
                     }
-                    if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                    } else {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                        factoryResetFeatureState = false
-                    }
                 })
             }
         }
@@ -453,8 +387,6 @@ fun Settings() {
                 mobileDataFeatureState = !mobileDataFeatureState
                 sharedPreferences.edit().putBoolean(KEY_MOBILE_DATA_FEATURE, mobileDataFeatureState)
                     .apply()
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (mobileDataFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, true)
                     try {
@@ -464,12 +396,6 @@ fun Settings() {
                     }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, false)
-                }
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -498,8 +424,6 @@ fun Settings() {
                 Switch(modifier = Modifier, checked = mobileDataFeatureState, onCheckedChange = {
                     mobileDataFeatureState = it
                     sharedPreferences.edit().putBoolean(KEY_MOBILE_DATA_FEATURE, it).apply()
-                    factoryResetSwitchEnabledState =
-                        thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (mobileDataFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, true)
                         try {
@@ -509,12 +433,6 @@ fun Settings() {
                         }
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_MOBILE_DATA_FEATURE, false)
-                    }
-                    if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                    } else {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                        factoryResetFeatureState = false
                     }
                 })
             }
@@ -526,8 +444,6 @@ fun Settings() {
             onClick = {
                 wifiFeatureState = !wifiFeatureState
                 sharedPreferences.edit().putBoolean(KEY_WIFI_FEATURE, wifiFeatureState).apply()
-                factoryResetSwitchEnabledState =
-                    thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                 if (wifiFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, true)
                     try {
@@ -538,12 +454,6 @@ fun Settings() {
                     }
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, false)
-                }
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                } else {
-                    SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                    factoryResetFeatureState = false
                 }
             }) {
             Row(
@@ -571,8 +481,6 @@ fun Settings() {
                 Switch(modifier = Modifier, checked = wifiFeatureState, onCheckedChange = {
                     wifiFeatureState = it
                     sharedPreferences.edit().putBoolean(KEY_WIFI_FEATURE, it).apply()
-                    factoryResetSwitchEnabledState =
-                        thirdPartyInstallFeatureState && cameraFeatureState && flashlightFeatureState && bluetoothFeatureState && mobileDataFeatureState && wifiFeatureState
                     if (wifiFeatureState) {
                         SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, true)
                         try {
@@ -584,12 +492,6 @@ fun Settings() {
                     } else {
                         SettingsUtil.setSystemFeatureEnabled(KEY_WIFI_FEATURE, false)
                     }
-                    if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                    } else {
-                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                        factoryResetFeatureState = false
-                    }
                 })
             }
         }
@@ -598,12 +500,11 @@ fun Settings() {
             .padding(0.dp)
             .fillMaxWidth(1f),
             shape = RoundedCornerShape(0.dp),
-            enabled = factoryResetSwitchEnabledState,
             onClick = {
                 factoryResetFeatureState = !factoryResetFeatureState
                 sharedPreferences.edit()
                     .putBoolean(KEY_FACTORY_RESET_FEATURE, factoryResetFeatureState).apply()
-                if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
+                if (factoryResetFeatureState) {
                     SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
                 } else {
                     SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
@@ -626,26 +527,23 @@ fun Settings() {
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "当所有开关都打开时才可使用",
+                        text = "开启将会屏蔽恢复出厂设置功能",
                         textAlign = TextAlign.Start,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Thin,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Switch(modifier = Modifier,
-                    checked = factoryResetFeatureState,
-                    enabled = factoryResetSwitchEnabledState,
-                    onCheckedChange = {
-                        factoryResetFeatureState = it
-                        sharedPreferences.edit().putBoolean(KEY_FACTORY_RESET_FEATURE, it).apply()
-                        if (factoryResetSwitchEnabledState && factoryResetFeatureState) {
-                            SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
-                        } else {
-                            SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
-                            factoryResetFeatureState = false
-                        }
-                    })
+                Switch(modifier = Modifier, checked = factoryResetFeatureState, onCheckedChange = {
+                    factoryResetFeatureState = it
+                    sharedPreferences.edit().putBoolean(KEY_FACTORY_RESET_FEATURE, it).apply()
+                    if (factoryResetFeatureState) {
+                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, true)
+                    } else {
+                        SettingsUtil.setSystemFeatureEnabled(KEY_FACTORY_RESET_FEATURE, false)
+                        factoryResetFeatureState = false
+                    }
+                })
             }
         }
 
